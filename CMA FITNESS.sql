@@ -1,7 +1,8 @@
-CREATE TABLE BOOKING(
-    Booking_ID   NUMBER PRIMARY KEY,
-    Member_ID    NUMBER,
-    Session_ID   NUMBER,
-    Booking_Date DATE,
-    Status       VARCHAR2(20)
+
+CREATE TABLE Trainer (
+    trainer_id      NUMBER(5) PRIMARY KEY,
+    first_name      VARCHAR2(50) NOT NULL,
+    last_name       VARCHAR2(50) NOT NULL,
+    specialization  VARCHAR2(100),
+    session_rate    NUMBER(8,2)
 );
