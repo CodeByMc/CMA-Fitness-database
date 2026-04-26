@@ -1,1 +1,6 @@
-DROP TABLE Membership_Package;
+CREATE TABLE Membership_Package (
+    package_id        NUMBER(5) PRIMARY KEY,
+    package_name      VARCHAR2(50) NOT NULL,
+    duration_months   NUMBER(3) NOT NULL,
+    monthly_fee       NUMBER(8,2) NOT NULL
+);
