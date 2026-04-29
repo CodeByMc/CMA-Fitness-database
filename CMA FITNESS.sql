@@ -1,10 +1,16 @@
-CREATE TABLE EQUIPMENT (
-    Equipment_ID     NUMBER(5) PRIMARY KEY,
-    Equipment_Name   VARCHAR2(50),
-    Serial_Number    VARCHAR2(50),
-    Purchase_Date    DATE,
-    Condition        VARCHAR2(20),
+CREATE TABLE MAINTENANCE (
+    Maintenance_ID   NUMBER(5) PRIMARY KEY,
+    Equipment_ID     NUMBER(5),
+    Technician_ID    NUMBER(5),
+    Maintenance_Date DATE,
+    Service_Type     VARCHAR2(50),
+    Repair_Cost      NUMBER(8,2),
 
-    CONSTRAINT chk_equipment_condition
-        CHECK (Condition IN ('Good', 'Fair', 'Poor'))
+    CONSTRAINT fk_maintenance_equipment
+        FOREIGN KEY (Equipment_ID)
+        REFERENCES EQUIPMENT(Equipment_ID),
+
+    CONSTRAINT fk_maintenance_technician
+        FOREIGN KEY (Technician_ID)
+        REFERENCES TECHNICIAN(Technician_ID)
 );
