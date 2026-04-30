@@ -280,3 +280,227 @@ SELECT * FROM Payment_Info_View;
 SELECT * FROM Payment_View;
 SELECT * FROM Member_Payment_View;
 
+
+--VARIABLES AND CHARACTER FUNCTIONS 
+
+DEFINE member_status = 'Active';
+
+SELECT Member_ID, First_Name, Last_Name, Membership_Status
+FROM MEMBER
+WHERE Membership_Status = '&member_status';
+
+DEFINE equipment_condition = 'Good';
+
+SELECT Equipment_ID, Equipment_Name, Condition
+FROM EQUIPMENT
+WHERE Condition = '&equipment_condition';
+
+DEFINE booking_status = 'ACTIVE';
+
+SELECT Booking_ID, Member_ID, Session_ID, Status
+FROM BOOKING
+WHERE Status = '&booking_status';
+
+SELECT Member_ID,
+       UPPER(First_Name) AS Upper_First_Name,
+       UPPER(Last_Name) AS Upper_Last_Name,
+       LOWER(Email) AS Lower_Email,
+       First_Name || ' ' || Last_Name AS Full_Name,
+       LENGTH(First_Name) AS First_Name_Length
+FROM MEMBER;
+
+SELECT Trainer_ID,
+       INITCAP(First_Name || ' ' || Last_Name) AS Trainer_Name,
+       UPPER(Specialisation) AS Specialisation
+FROM TRAINER;
+
+SELECT Technician_ID,
+       INITCAP(First_Name || ' ' || Last_Name) AS Technician_Name,
+       SUBSTR(Phone, 1, 3) AS Phone_Code
+FROM TECHNICIAN;
+
+SELECT Equipment_ID,
+       UPPER(Equipment_Name) AS Equipment_Name,
+       LOWER(Condition) AS Equipment_Condition
+FROM EQUIPMENT;
+
+SELECT Class_Type_ID,
+       UPPER(Class_Name) AS Class_Name,
+       SUBSTR(Description, 1, 20) AS Short_Description
+FROM CLASS_TYPE;
+
+
+--AGGREGATE FUNCTIONS 
+
+SELECT COUNT(*) AS Total_Members
+FROM MEMBER;
+
+SELECT COUNT(*) AS Total_Packages,
+       AVG(Monthly_Fee) AS Average_Monthly_Fee,
+       MAX(Monthly_Fee) AS Highest_Monthly_Fee,
+       MIN(Monthly_Fee) AS Lowest_Monthly_Fee
+FROM MEMBER_PACKAGE;
+
+SELECT COUNT(*) AS Total_Payments,
+       SUM(Amount_Paid) AS Total_Amount_Paid,
+       SUM(Outstanding_Amount) AS Total_Outstanding,
+       AVG(Amount_Paid) AS Average_Payment
+FROM PAYMENT_INFO;
+
+SELECT COUNT(*) AS Total_Equipment
+FROM EQUIPMENT;
+
+SELECT COUNT(*) AS Total_Maintenance,
+       SUM(Repair_Cost) AS Total_Repair_Cost,
+       AVG(Repair_Cost) AS Average_Repair_Cost,
+       MAX(Repair_Cost) AS Highest_Repair_Cost,
+       MIN(Repair_Cost) AS Lowest_Repair_Cost
+FROM MAINTENANCE;
+
+SELECT COUNT(*) AS Total_Trainers,
+       AVG(Session_Rate) AS Average_Session_Rate,
+       MAX(Session_Rate) AS Highest_Session_Rate,
+       MIN(Session_Rate) AS Lowest_Session_Rate
+FROM TRAINER;
+
+SELECT COUNT(*) AS Total_Class_Types,
+       AVG(Duration) AS Average_Class_Duration,
+       MAX(Duration) AS Longest_Class,
+       MIN(Duration) AS Shortest_Class
+FROM CLASS_TYPE;
+
+SELECT COUNT(*) AS Total_Bookings
+FROM BOOKING;
+
+
+
+--GROUP BY AND HAVING 
+
+SELECT Membership_Status, COUNT(*) AS Total_Members
+FROM MEMBER
+GROUP BY Membership_Status
+HAVING COUNT(*) >= 1;
+
+SELECT Package_ID, COUNT(*) AS Total_Members
+FROM MEMBER
+GROUP BY Package_ID
+HAVING COUNT(*) >= 1;
+
+SELECT Payment_Method,
+       COUNT(*) AS Number_Of_Payments,
+       SUM(Amount_Paid) AS Total_Paid
+FROM PAYMENT_INFO
+GROUP BY Payment_Method
+HAVING SUM(Amount_Paid) > 0;
+
+SELECT Condition, COUNT(*) AS Total_Equipment
+FROM EQUIPMENT
+GROUP BY Condition
+HAVING COUNT(*) >= 1;
+
+SELECT Service_Type,
+       COUNT(*) AS Total_Services,
+       SUM(Repair_Cost) AS Total_Repair_Cost
+FROM MAINTENANCE
+GROUP BY Service_Type
+HAVING SUM(Repair_Cost) > 0;
+
+SELECT Technician_ID,
+       COUNT(*) AS Total_Jobs,
+       SUM(Repair_Cost) AS Total_Repair_Cost
+FROM MAINTENANCE
+GROUP BY Technician_ID
+HAVING COUNT(*) >= 1;
+
+SELECT Specialisation,
+       COUNT(*) AS Total_Trainers,
+       AVG(Session_Rate) AS Average_Rate
+FROM TRAINER
+GROUP BY Specialisation
+HAVING AVG(Session_Rate) > 0;
+
+SELECT Duration,
+       COUNT(*) AS Total_Classes
+FROM CLASS_TYPE
+GROUP BY Duration
+HAVING COUNT(*) >= 1;
+
+SELECT Status,
+       COUNT(*) AS Total_Bookings
+FROM BOOKING
+GROUP BY Status
+HAVING COUNT(*) >= 1;
+
+
+
+--JOINS 
+
+
+SELECT M.Member_ID,
+       M.First_Name,
+       M.Last_Name,
+       MP.Package_Name,
+       MP.Monthly_Fee
+FROM MEMBER M
+JOIN MEMBER_PACKAGE MP
+ON M.Package_ID = MP.Package_ID;
+
+SELECT M.Member_ID,
+       M.First_Name,
+       M.Last_Name,
+       PI.Payment_ID,
+       PI.Amount_Paid,
+       PI.Outstanding_Amount,
+       PI.Payment_Method,
+       PI.Payment_Date
+FROM MEMBER M
+JOIN PAYMENT P
+ON M.Member_ID = P.Member_ID
+JOIN PAYMENT_INFO PI
+ON P.Payment_ID = PI.Payment_ID;
+
+SELECT E.Equipment_ID,
+       E.Equipment_Name,
+       E.Condition,
+       M.Maintenance_ID,
+       M.Service_Type,
+       M.Repair_Cost
+FROM EQUIPMENT E
+JOIN MAINTENANCE M
+ON E.Equipment_ID = M.Equipment_ID;
+
+SELECT T.Technician_ID,
+       T.First_Name,
+       T.Last_Name,
+       M.Maintenance_ID,
+       M.Service_Type,
+       M.Maintenance_Date
+FROM TECHNICIAN T
+JOIN MAINTENANCE M
+ON T.Technician_ID = M.Technician_ID;
+
+SELECT CS.Session_ID,
+       CT.Class_Name,
+       T.First_Name || ' ' || T.Last_Name AS Trainer_Name,
+       CS.Session_Date,
+       CS.Session_Start_Time,
+       CS.Session_End_Time
+FROM CLASS_SESSION CS
+JOIN CLASS_TYPE CT
+ON CS.Class_Type_ID = CT.Class_Type_ID
+JOIN TRAINER T
+ON CS.Trainer_ID = T.Trainer_ID;
+
+SELECT B.Booking_ID,
+       M.First_Name,
+       M.Last_Name,
+       CT.Class_Name,
+       CS.Session_Date,
+       B.Status
+FROM BOOKING B
+JOIN MEMBER M
+ON B.Member_ID = M.Member_ID
+JOIN CLASS_SESSION CS
+ON B.Session_ID = CS.Session_ID
+JOIN CLASS_TYPE CT
+ON CS.Class_Type_ID = CT.Class_Type_ID;
