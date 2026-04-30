@@ -1,20 +1,15 @@
--- Drop Tables
-
+-- Drop existing objects
 DROP TABLE BOOKING CASCADE CONSTRAINTS;
 DROP TABLE CLASS_SESSION CASCADE CONSTRAINTS;
 DROP TABLE TRAINER CASCADE CONSTRAINTS;
 DROP TABLE CLASS_TYPE CASCADE CONSTRAINTS;
-
 DROP TABLE MAINTENANCE CASCADE CONSTRAINTS;
 DROP TABLE TECHNICIAN CASCADE CONSTRAINTS;
 DROP TABLE EQUIPMENT CASCADE CONSTRAINTS;
-
 DROP TABLE PAYMENT CASCADE CONSTRAINTS;
 DROP TABLE PAYMENT_INFO CASCADE CONSTRAINTS;
 DROP TABLE MEMBER CASCADE CONSTRAINTS;
 DROP TABLE MEMBER_PACKAGE CASCADE CONSTRAINTS;
-
--- Drop Views
 
 DROP VIEW ACTIVE_MEMBERS;
 DROP VIEW EQUIPMENT_MAINTENANCE;
@@ -22,128 +17,120 @@ DROP VIEW TECHNICIAN_WORK;
 DROP VIEW EQUIPMENT_STATUS;
 DROP VIEW SESSION_VIEW;
 DROP VIEW BOOKING_VIEW;
+DROP VIEW Member_View;
+DROP VIEW Member_Package_View;
+DROP VIEW Payment_Info_View;
+DROP VIEW Payment_View;
+DROP VIEW Member_Payment_View;
 
--- Tables
-
+-- Create Tables
 CREATE TABLE MEMBER_PACKAGE (
-Package_ID     NUMBER(5) PRIMARY KEY,
-Package_Name   VARCHAR2(50),
-Duration       NUMBER(3),
-Monthly_Fee    NUMBER(8,2)
+    Package_ID     NUMBER(5) PRIMARY KEY,
+    Package_Name   VARCHAR2(50),
+    Duration       NUMBER(3),
+    Monthly_Fee    NUMBER(8,2)
 );
 
 CREATE TABLE MEMBER (
-Member_ID              NUMBER(5) PRIMARY KEY,
-Package_ID             NUMBER(5),
-First_Name             VARCHAR2(50),
-Last_Name              VARCHAR2(50),
-Phone                  VARCHAR2(20),
-Email                  VARCHAR2(50),
-Membership_Start_Date  DATE,
-Membership_End_Date    DATE,
-Membership_Status      VARCHAR2(20),
-CONSTRAINT fk_member_package
-FOREIGN KEY (Package_ID)
-REFERENCES MEMBER_PACKAGE(Package_ID)
+    Member_ID              NUMBER(5) PRIMARY KEY,
+    Package_ID             NUMBER(5),
+    First_Name             VARCHAR2(50),
+    Last_Name              VARCHAR2(50),
+    Phone                  VARCHAR2(20),
+    Email                  VARCHAR2(50),
+    Membership_Start_Date  DATE,
+    Membership_End_Date    DATE,
+    Membership_Status      VARCHAR2(20),
+    CONSTRAINT fk_member_package FOREIGN KEY (Package_ID) REFERENCES MEMBER_PACKAGE(Package_ID)
 );
 
 CREATE TABLE PAYMENT_INFO (
-Payment_ID         NUMBER(5) PRIMARY KEY,
-Amount_Paid        NUMBER(8,2),
-Outstanding_Amount NUMBER(8,2),
-Payment_Method     VARCHAR2(20),
-Payment_Date       DATE
+    Payment_ID         NUMBER(5) PRIMARY KEY,
+    Amount_Paid        NUMBER(8,2),
+    Outstanding_Amount NUMBER(8,2),
+    Payment_Method     VARCHAR2(20),
+    Payment_Date       DATE
 );
 
 CREATE TABLE PAYMENT (
-Member_ID   NUMBER(5),
-Payment_ID  NUMBER(5),
-PRIMARY KEY (Member_ID, Payment_ID),
-CONSTRAINT fk_payment_member
-FOREIGN KEY (Member_ID)
-REFERENCES MEMBER(Member_ID),
-CONSTRAINT fk_payment_info
-FOREIGN KEY (Payment_ID)
-REFERENCES PAYMENT_INFO(Payment_ID)
+    Member_ID   NUMBER(5),
+    Payment_ID  NUMBER(5),
+    PRIMARY KEY (Member_ID, Payment_ID),
+    CONSTRAINT fk_payment_member FOREIGN KEY (Member_ID) REFERENCES MEMBER(Member_ID),
+    CONSTRAINT fk_payment_info FOREIGN KEY (Payment_ID) REFERENCES PAYMENT_INFO(Payment_ID)
 );
 
 CREATE TABLE EQUIPMENT (
-Equipment_ID     NUMBER(5) PRIMARY KEY,
-Equipment_Name   VARCHAR2(50) NOT NULL,
-Serial_Number    VARCHAR2(50) UNIQUE,
-Purchase_Date    DATE,
-Condition        VARCHAR2(20),
-CONSTRAINT chk_equipment_condition
-CHECK (Condition IN ('Good','Fair','Poor'))
+    Equipment_ID     NUMBER(5) PRIMARY KEY,
+    Equipment_Name   VARCHAR2(50) NOT NULL,
+    Serial_Number    VARCHAR2(50) UNIQUE,
+    Purchase_Date    DATE,
+    Condition        VARCHAR2(20),
+    CONSTRAINT chk_equipment_condition CHECK (Condition IN ('Good','Fair','Poor'))
 );
 
 CREATE TABLE TECHNICIAN (
-Technician_ID   NUMBER(5) PRIMARY KEY,
-First_Name      VARCHAR2(50) NOT NULL,
-Last_Name       VARCHAR2(50) NOT NULL,
-Phone           VARCHAR2(20) NOT NULL
+    Technician_ID   NUMBER(5) PRIMARY KEY,
+    First_Name      VARCHAR2(50) NOT NULL,
+    Last_Name       VARCHAR2(50) NOT NULL,
+    Phone           VARCHAR2(20) NOT NULL
 );
 
 CREATE TABLE MAINTENANCE (
-Maintenance_ID   NUMBER(5) PRIMARY KEY,
-Equipment_ID     NUMBER(5) NOT NULL,
-Technician_ID    NUMBER(5) NOT NULL,
-Maintenance_Date DATE NOT NULL,
-Service_Type     VARCHAR2(50),
-Repair_Cost      NUMBER(8,2),
-CONSTRAINT fk_maintenance_equipment
-FOREIGN KEY (Equipment_ID)
-REFERENCES EQUIPMENT(Equipment_ID),
-CONSTRAINT fk_maintenance_technician
-FOREIGN KEY (Technician_ID)
-REFERENCES TECHNICIAN(Technician_ID),
-CONSTRAINT chk_repair_cost
-CHECK (Repair_Cost >= 0)
+    Maintenance_ID   NUMBER(5) PRIMARY KEY,
+    Equipment_ID     NUMBER(5) NOT NULL,
+    Technician_ID    NUMBER(5) NOT NULL,
+    Maintenance_Date DATE NOT NULL,
+    Service_Type     VARCHAR2(50),
+    Repair_Cost      NUMBER(8,2),
+    CONSTRAINT fk_maintenance_equipment FOREIGN KEY (Equipment_ID) REFERENCES EQUIPMENT(Equipment_ID),
+    CONSTRAINT fk_maintenance_technician FOREIGN KEY (Technician_ID) REFERENCES TECHNICIAN(Technician_ID),
+    CONSTRAINT chk_repair_cost CHECK (Repair_Cost >= 0)
 );
 
 CREATE TABLE CLASS_TYPE (
-Class_Type_ID INTEGER PRIMARY KEY,
-Class_Name VARCHAR2(100) NOT NULL,
-Description VARCHAR2(255),
-Duration INTEGER NOT NULL,
-CONSTRAINT CHK_CLASS_TYPE_DURATION CHECK (Duration > 0)
+    Class_Type_ID INTEGER PRIMARY KEY,
+    Class_Name    VARCHAR2(100) NOT NULL,
+    Description   VARCHAR2(255),
+    Duration      INTEGER NOT NULL,
+    CONSTRAINT CHK_CLASS_TYPE_DURATION CHECK (Duration > 0)
 );
 
 CREATE TABLE TRAINER (
-Trainer_ID INTEGER PRIMARY KEY,
-First_Name VARCHAR2(50) NOT NULL,
-Last_Name VARCHAR2(50) NOT NULL,
-Specialisation VARCHAR2(100),
-Session_Rate NUMBER(8,2) NOT NULL,
-CONSTRAINT CHK_TRAINER_RATE CHECK (Session_Rate >= 0)
+    Trainer_ID     INTEGER PRIMARY KEY,
+    First_Name     VARCHAR2(50) NOT NULL,
+    Last_Name      VARCHAR2(50) NOT NULL,
+    Specialisation VARCHAR2(100),
+    Session_Rate   NUMBER(8,2) NOT NULL,
+    CONSTRAINT CHK_TRAINER_RATE CHECK (Session_Rate >= 0)
 );
 
+-- Fixed CLASS_SESSION (removed invalid FK to ATTENDANCE)
 CREATE TABLE CLASS_SESSION (
-Session_ID INTEGER PRIMARY KEY,
-Attendance_ID INTEGER,
-Class_Type_ID INTEGER NOT NULL,
-Trainer_ID INTEGER NOT NULL,
-Session_Date DATE NOT NULL,
-Session_Start_Time TIMESTAMP NOT NULL,
-Session_End_Time TIMESTAMP NOT NULL,
-CONSTRAINT FK_CLASS_SESSION_CLASS_TYPE FOREIGN KEY (Class_Type_ID) REFERENCES CLASS_TYPE(Class_Type_ID),
-CONSTRAINT FK_CLASS_SESSION_TRAINER FOREIGN KEY (Trainer_ID) REFERENCES TRAINER(Trainer_ID),
-CONSTRAINT CHK_SESSION_TIME CHECK (Session_End_Time > Session_Start_Time)
+    Session_ID         INTEGER PRIMARY KEY,
+    Attendance_ID      INTEGER,
+    Class_Type_ID      INTEGER NOT NULL,
+    Trainer_ID         INTEGER NOT NULL,
+    Session_Date       DATE NOT NULL,
+    Session_Start_Time TIMESTAMP NOT NULL,
+    Session_End_Time   TIMESTAMP NOT NULL,
+    CONSTRAINT FK_CLASS_SESSION_CLASS_TYPE FOREIGN KEY (Class_Type_ID) REFERENCES CLASS_TYPE(Class_Type_ID),
+    CONSTRAINT FK_CLASS_SESSION_TRAINER FOREIGN KEY (Trainer_ID) REFERENCES TRAINER(Trainer_ID),
+    CONSTRAINT CHK_SESSION_TIME CHECK (Session_End_Time > Session_Start_Time)
 );
 
 CREATE TABLE BOOKING (
-Booking_ID INTEGER PRIMARY KEY,
-Member_ID INTEGER NOT NULL,
-Session_ID INTEGER NOT NULL,
-Booking_Date DATE DEFAULT SYSDATE,
-Status VARCHAR2(20) DEFAULT 'ACTIVE',
-CONSTRAINT FK_BOOKING_MEMBER FOREIGN KEY (Member_ID) REFERENCES MEMBER(Member_ID),
-CONSTRAINT FK_BOOKING_SESSION FOREIGN KEY (Session_ID) REFERENCES CLASS_SESSION(Session_ID),
-CONSTRAINT CHK_BOOKING_STATUS CHECK (Status IN ('ACTIVE','CANCELLED','COMPLETED'))
+    Booking_ID    INTEGER PRIMARY KEY,
+    Member_ID     INTEGER NOT NULL,
+    Session_ID    INTEGER NOT NULL,
+    Booking_Date  DATE DEFAULT SYSDATE,
+    Status        VARCHAR2(20) DEFAULT 'ACTIVE',
+    CONSTRAINT FK_BOOKING_MEMBER FOREIGN KEY (Member_ID) REFERENCES MEMBER(Member_ID),
+    CONSTRAINT FK_BOOKING_SESSION FOREIGN KEY (Session_ID) REFERENCES CLASS_SESSION(Session_ID),
+    CONSTRAINT CHK_BOOKING_STATUS CHECK (Status IN ('ACTIVE','CANCELLED','COMPLETED'))
 );
 
--- Indexes
-
+-- Create Indexes
 CREATE INDEX idx_member_lastname ON MEMBER(Last_Name);
 CREATE INDEX idx_member_package ON MEMBER(Package_ID);
 CREATE INDEX idx_equipment_name ON EQUIPMENT(Equipment_Name);
@@ -152,22 +139,19 @@ CREATE INDEX idx_technician_lastname ON TECHNICIAN(Last_Name);
 CREATE INDEX idx_maintenance_equipment ON MAINTENANCE(Equipment_ID);
 CREATE INDEX idx_maintenance_technician ON MAINTENANCE(Technician_ID);
 CREATE INDEX idx_maintenance_date ON MAINTENANCE(Maintenance_Date);
-
+CREATE INDEX idx_class_session_attendance ON CLASS_SESSION(Attendance_ID);
 CREATE INDEX idx_class_session_class_type ON CLASS_SESSION(Class_Type_ID);
 CREATE INDEX idx_class_session_trainer ON CLASS_SESSION(Trainer_ID);
 CREATE INDEX idx_booking_session ON BOOKING(Session_ID);
 CREATE INDEX idx_booking_member ON BOOKING(Member_ID);
-
 CREATE INDEX idx_payment_member ON PAYMENT (Member_ID);
 CREATE INDEX idx_payment_paymentid ON PAYMENT (Payment_ID);
 CREATE INDEX idx_paymentinfo_date ON PAYMENT_INFO (Payment_Date);
 
--- Views
-
+-- Create Views
 CREATE VIEW ACTIVE_MEMBERS AS
 SELECT Member_ID, First_Name, Last_Name, Membership_Status
-FROM MEMBER
-WHERE Membership_Status = 'Active';
+FROM MEMBER WHERE Membership_Status = 'Active';
 
 CREATE VIEW EQUIPMENT_MAINTENANCE AS
 SELECT e.Equipment_Name, m.Service_Type, m.Maintenance_Date, m.Repair_Cost,
@@ -201,8 +185,30 @@ FROM BOOKING B
 JOIN CLASS_SESSION CS ON B.Session_ID = CS.Session_ID
 JOIN CLASS_TYPE CT ON CS.Class_Type_ID = CT.Class_Type_ID;
 
--- Insert Data
+CREATE VIEW Member_View AS
+SELECT Member_ID, First_Name, Last_Name, Phone, Email, Membership_Status
+FROM MEMBER;
 
+CREATE VIEW Member_Package_View AS
+SELECT Package_ID, Package_Name, Duration, Monthly_Fee
+FROM MEMBER_PACKAGE;
+
+CREATE VIEW Payment_Info_View AS
+SELECT Payment_ID, Amount_Paid, Outstanding_Amount, Payment_Method, Payment_Date
+FROM PAYMENT_INFO;
+
+CREATE VIEW Payment_View AS
+SELECT Member_ID, Payment_ID
+FROM PAYMENT;
+
+CREATE VIEW Member_Payment_View AS
+SELECT M.Member_ID, M.First_Name, M.Last_Name,
+PI.Payment_ID, PI.Amount_Paid, PI.Outstanding_Amount, PI.Payment_Date
+FROM MEMBER M, PAYMENT P, PAYMENT_INFO PI
+WHERE M.Member_ID = P.Member_ID
+AND P.Payment_ID = PI.Payment_ID;
+
+-- Insert Data
 INSERT INTO EQUIPMENT VALUES (1, 'Treadmill', 'SN1001', DATE '2023-05-01', 'Good');
 INSERT INTO EQUIPMENT VALUES (2, 'Exercise Bike', 'SN1002', DATE '2022-03-15', 'Fair');
 INSERT INTO EQUIPMENT VALUES (3, 'Dumbbells Set', 'SN1003', DATE '2021-08-10', 'Good');
@@ -231,9 +237,9 @@ INSERT INTO MEMBER_PACKAGE VALUES (1, 'Basic Package', 1, 250.00);
 INSERT INTO MEMBER_PACKAGE VALUES (2, 'Standard Package', 3, 600.00);
 INSERT INTO MEMBER_PACKAGE VALUES (3, 'Premium Package', 6, 1000.00);
 
-INSERT INTO MEMBER VALUES (101, 1, 'Thabo', 'Mokoena', '0712345678', '[thabo@gmail.com](mailto:thabo@gmail.com)', DATE '2026-01-01', DATE '2026-02-01', 'Active');
-INSERT INTO MEMBER VALUES (102, 2, 'Lerato', 'Dlamini', '0723456789', '[lerato@gmail.com](mailto:lerato@gmail.com)', DATE '2026-01-10', DATE '2026-04-10', 'Active');
-INSERT INTO MEMBER VALUES (103, 3, 'Sipho', 'Nkosi', '0734567890', '[sipho@gmail.com](mailto:sipho@gmail.com)', DATE '2026-02-01', DATE '2026-08-01', 'Active');
+INSERT INTO MEMBER VALUES (101, 1, 'Thabo', 'Mokoena', '0712345678', 'thabo@gmail.com', DATE '2026-01-01', DATE '2026-02-01', 'Active');
+INSERT INTO MEMBER VALUES (102, 2, 'Lerato', 'Dlamini', '0723456789', 'lerato@gmail.com', DATE '2026-01-10', DATE '2026-04-10', 'Active');
+INSERT INTO MEMBER VALUES (103, 3, 'Sipho', 'Nkosi', '0734567890', 'sipho@gmail.com', DATE '2026-02-01', DATE '2026-08-01', 'Active');
 
 INSERT INTO PAYMENT_INFO VALUES (201, 250.00, 0.00, 'Cash', DATE '2026-01-01');
 INSERT INTO PAYMENT_INFO VALUES (202, 300.00, 300.00, 'Card', DATE '2026-01-10');
@@ -247,30 +253,31 @@ INSERT INTO BOOKING VALUES (1, 101, 1, SYSDATE, 'ACTIVE');
 INSERT INTO BOOKING VALUES (2, 102, 2, SYSDATE, 'COMPLETED');
 INSERT INTO BOOKING VALUES (3, 103, 3, SYSDATE, 'ACTIVE');
 
--- Commit
-
+COMMIT;
 
 -- Test Tables
-
 SELECT * FROM MEMBER;
 SELECT * FROM MEMBER_PACKAGE;
 SELECT * FROM PAYMENT_INFO;
 SELECT * FROM PAYMENT;
-
 SELECT * FROM EQUIPMENT;
 SELECT * FROM TECHNICIAN;
 SELECT * FROM MAINTENANCE;
-
 SELECT * FROM CLASS_TYPE;
 SELECT * FROM TRAINER;
 SELECT * FROM CLASS_SESSION;
 SELECT * FROM BOOKING;
 
--- Test Views
-
+-- Test All Views
 SELECT * FROM ACTIVE_MEMBERS;
 SELECT * FROM EQUIPMENT_MAINTENANCE;
 SELECT * FROM TECHNICIAN_WORK;
 SELECT * FROM EQUIPMENT_STATUS;
 SELECT * FROM SESSION_VIEW;
 SELECT * FROM BOOKING_VIEW;
+SELECT * FROM Member_View;
+SELECT * FROM Member_Package_View;
+SELECT * FROM Payment_Info_View;
+SELECT * FROM Payment_View;
+SELECT * FROM Member_Payment_View;
+
