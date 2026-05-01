@@ -504,3 +504,51 @@ JOIN CLASS_SESSION CS
 ON B.Session_ID = CS.Session_ID
 JOIN CLASS_TYPE CT
 ON CS.Class_Type_ID = CT.Class_Type_ID;
+------------------------------------------------------------Date Funtions 
+SELECT E.Equipment_Name,
+       T.First_Name AS Technician_First_Name,
+       T.Last_Name AS Technician_Last_Name,
+       M.Maintenance_ID,
+       M.Maintenance_Date
+FROM EQUIPMENT E
+JOIN MAINTENANCE M 
+    ON E.Equipment_ID = M.Equipment_ID 
+JOIN TECHNICIAN T 
+    ON M.Technician_ID = T.Technician_ID
+WHERE M.Maintenance_Date >= SYSDATE - 180;
+------------------------------------------------------------Round and Truncate
+SELECT M.First_Name, M.Last_Name, ROUND(PI.Outstanding_Amount, 2) AS Balance_Due
+FROM MEMBER M
+JOIN PAYMENT P ON M.Member_ID = P.Member_ID
+JOIN PAYMENT_INFO PI ON P.Payment_ID = PI.Payment_ID
+WHERE PI.Outstanding_Amount > 0;
+
+SELECT First_Name, Last_Name,
+    TRUNC(Session_Rate, 2) AS Displayed_Rate
+FROM TRAINER;
+------------------------------------------------------------Subquries
+SELECT Package_ID, Package_Name,
+       ( SELECT COUNT(*) FROM MEMBER M
+           WHERE M.Package_ID = MP.Package_ID
+       ) AS Total_Members  FROM MEMBER_PACKAGE MP;
+      
+SELECT First_Name, Last_Name FROM MEMBER M WHERE Membership_Status = 'Active'
+AND EXISTS (SELECT B.Member_ID FROM BOOKING B WHERE B.Member_ID = M.Member_ID
+AND B.Status = 'ACTIVE');
+------------------------------------------------------------EXTRA FUNCTIONALITY
+SELECT DISTINCT Equipment_ID, Equipment_Name
+FROM EQUIPMENT
+WHERE Equipment_ID IN (
+    SELECT Equipment_ID
+    FROM MAINTENANCE
+);
+
+UPDATE BOOKING B
+SET Status = 'COMPLETED'
+WHERE EXISTS (
+    SELECT B.Member_ID
+    FROM CLASS_SESSION CS
+    WHERE CS.Session_ID = B.Session_ID
+    AND CS.Session_Date < SYSDATE
+);
+--DELETE FROM MEMBER M WHERE M.Membership_End_Date < (SYSDATE - 365);
