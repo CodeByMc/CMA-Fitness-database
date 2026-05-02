@@ -280,6 +280,54 @@ SELECT * FROM Payment_Info_View;
 SELECT * FROM Payment_View;
 SELECT * FROM Member_Payment_View;
 
+----QUERIES-----
+
+-- LIMITATION OF ROWS AND COLUMNS 
+
+SELECT * FROM MEMBER 
+WHERE PACKAGE_ID >= 2;
+
+SELECT First_Name, Last_Name 
+FROM MEMBER;
+
+SELECT * FROM MAINTENANCE 
+WHERE SERVICE_TYPE = 'Repair';
+
+SELECT Equipment_Name 
+FROM EQUIPMENT;
+
+--SORTING
+SELECT First_Name, Last_Name
+FROM MEMBER
+ORDER BY Last_Name;
+
+SELECT Equipment_Name, Condition
+FROM EQUIPMENT
+ORDER BY Condition;
+
+SELECT Service_Type, Repair_Cost
+FROM MAINTENANCE
+ORDER BY Repair_Cost ASC;
+
+SELECT Session_ID, Session_Date
+FROM CLASS_SESSION
+ORDER BY Session_Date;
+
+--LIKE, AND, OR
+
+SELECT First_Name, Last_Name
+FROM MEMBER
+WHERE First_Name LIKE 'T%';
+
+SELECT *
+FROM MAINTENANCE
+WHERE Repair_Cost > 200 AND Service_Type = 'Repair';
+
+SELECT *
+FROM BOOKING
+WHERE Status = 'ACTIVE' OR Status = 'COMPLETED';
+
+
 
 --VARIABLES AND CHARACTER FUNCTIONS 
 
